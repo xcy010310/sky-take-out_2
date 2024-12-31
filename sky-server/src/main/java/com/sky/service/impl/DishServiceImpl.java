@@ -6,7 +6,10 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
+import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.DishDisableFailedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
@@ -200,5 +203,32 @@ public class DishServiceImpl implements DishService {
         }
 
         return dishVOList;
+    }
+
+    /**
+     * 菜品起售停售
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        //若菜品需要停售，则要查看包含该菜品的套餐是否起售，若起售，抛出业务异常
+        if(status == StatusConstant.DISABLE) {
+            List<Long> ids = new ArrayList<>();
+            ids.add(id);
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
+            for (Long setmealId : setmealIds) {
+                Setmeal setmeal = setmealMapper.getById(setmealId);
+                if(setmeal.getStatus() == StatusConstant.ENABLE) {
+                    throw new DishDisableFailedException(MessageConstant.DISH_DISABLE_FAILED);
+                }
+            }
+        }
+
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
     }
 }

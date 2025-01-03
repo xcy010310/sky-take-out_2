@@ -56,4 +56,10 @@ public interface ShoppingCartMapper {
      */
     @Delete("delete from shopping_cart where user_id = #{userId} and dish_flavor = #{dishFlavor} and dish_id = #{dishId}")
     void deleteByDishId(Long userId, String dishFlavor, Long dishId);
+
+    /**
+     * 批量插入购物车数据
+     * @param shoppingCartList
+     */
+    void insertBatch(List<ShoppingCart> shoppingCartList);
 }
